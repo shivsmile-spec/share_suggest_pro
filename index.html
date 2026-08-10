@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>India Stock Pro Analyzer — Short Term & Dividend</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:#172033;font-family:Arial,sans-serif}
+header{background:#101827;color:#fff;padding:22px}header h1{margin:0 0 6px;font-size:27px}header p{margin:0;color:#cbd5e1}
+main{max-width:1450px;margin:auto;padding:18px}.card{background:#fff;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 2px 12px #0001}
+.search{display:flex;gap:10px}.search input{flex:1;padding:13px;border:1px solid #cbd5e1;border-radius:9px;font-size:16px}.search button{padding:13px 18px;border:0;border-radius:9px;background:#111827;color:#fff;font-weight:700;cursor:pointer}
+.status{margin-top:12px;padding:11px;border-radius:9px;background:#f8fafc;color:#667085}.ok{color:#087f5b}.err{color:#b42318}
+.progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:12px}.bar{height:100%;width:0;background:#2563eb;transition:width .25s}.pct{font-size:12px;color:#667085;text-align:right;margin-top:4px}
+.hero,.grid,.scoregrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.grid{grid-template-columns:repeat(4,1fr)}.scoregrid{grid-template-columns:repeat(4,1fr)}
+.metric,.box{background:#f8fafc;border-radius:10px;padding:13px}.metric span,.label{display:block;color:#667085;font-size:12px}.metric b{display:block;font-size:21px;margin-top:5px}
+.signal{margin-top:14px;padding:18px;border:1px solid #e5e7eb;border-radius:12px}.signal strong{font-size:27px}.meter{height:16px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:12px}.meter i{display:block;height:100%;width:0;background:#087f5b}
+.scorebox{background:#f8fafc;border-radius:12px;padding:15px;border:1px solid #e5e7eb}.scorebox h3{margin:0 0 6px}.scorebig{font-size:28px;font-weight:800}.mini{height:9px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:8px 0}.mini i{display:block;height:100%;width:0;background:#2563eb}
+.small{font-size:12px;color:#667085;line-height:1.5}.wrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:14px}th{background:#f8fafc}
+.good{color:#087f5b;font-weight:700}.bad{color:#c2410c;font-weight:700}.neutral{color:#b45309;font-weight:700}.tag{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff}
+.alert{padding:14px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;margin-top:12px}.decision{font-size:20px;font-weight:800}
+@media(max-width:900px){.hero,.scoregrid{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.search{flex-direction:column}.hero,.grid,.scoregrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h1>🇮🇳 India Stock Pro Analyzer</h1><p>Short-term trading, swing, dividend-catalyst and long-term research — kept separate.</p></header>
+<main>
+<div class="card">
+<h2 style="margin-top:0">Search & Analyze</h2>
+<div class="search"><input id="q" placeholder="Enter NSE symbol or company — HINDPETRO, TCS, INFY, RELIANCE…"><button onclick="analyze()">Analyze</button></div>
+<div id="status" class="status">Loading the latest market dataset…</div><div class="progress"><div id="bar" class="bar"></div></div><div id="pct" class="pct">0%</div>
+</div>
+
+<section id="out" style="display:none">
+<div class="card"><div class="hero">
+<div class="metric"><span>Share</span><b id="sym">—</b><span id="company">—</span></div>
+<div class="metric"><span>Latest price</span><b id="price">—</b></div>
+<div class="metric"><span>Day change</span><b id="chg">—</b></div>
+<div class="metric"><span>RSI 14</span><b id="rsi">—</b></div>
+<div class="metric"><span>Trend</span><b id="trend">—</b></div>
+</div></div>
+
+<div class="card">
+<h2 style="margin-top:0">Four separate decisions</h2>
+<div class="scoregrid">
+<div class="scorebox"><h3>⚡ 1–2 Day Trade</h3><div id="stScore" class="scorebig">—</div><div class="mini"><i id="stBar"></i></div><div id="stVerdict">—</div></div>
+<div class="scorebox"><h3>📈 Swing</h3><div id="swScore" class="scorebig">—</div><div class="mini"><i id="swBar"></i></div><div id="swVerdict">—</div></div>
+<div class="scorebox"><h3>💰 Dividend</h3><div id="dvScore" class="scorebig">—</div><div class="mini"><i id="dvBar"></i></div><div id="dvVerdict">—</div></div>
+<div class="scorebox"><h3>🏦 Long Term</h3><div id="ltScore" class="scorebig">—</div><div class="mini"><i id="ltBar"></i></div><div id="ltVerdict">—</div></div>
+</div>
+<div class="alert"><span class="decision" id="mainDecision">—</span><br><span id="decisionWhy">—</span></div>
+</div>
+
+<div class="card"><h2>Short-term trading setup</h2><div class="grid">
+<div class="box"><h3>Support</h3><div id="support" class="value">—</div><div class="label">Recent 20-day support estimate</div></div>
+<div class="box"><h3>Resistance</h3><div id="resistance" class="value">—</div><div class="label">Recent 20-day resistance estimate</div></div>
+<div class="box"><h3>Possible entry zone</h3><div id="entry" class="value">—</div><div class="label">Rules-based, not guaranteed</div></div>
+<div class="box"><h3>Possible target</h3><div id="target" class="value">—</div><div class="label">Nearest resistance / momentum</div></div>
+<div class="box"><h3>Stop-loss reference</h3><div id="stop" class="value">—</div><div class="label">Below support / ATR</div></div>
+<div class="box"><h3>Risk / reward</h3><div id="rr" class="value">—</div></div>
+<div class="box"><h3>ATR 14</h3><div id="atr" class="value">—</div></div>
+<div class="box"><h3>Volume</h3><div id="voln" class="value">—</div><div class="label">vs 20-day average</div></div>
+</div></div>
+
+<div class="card"><h2>Momentum & volatility</h2><div class="grid">
+<div class="box"><h3>1-day</h3><div id="m1">—</div></div><div class="box"><h3>5-day</h3><div id="m5">—</div></div>
+<div class="box"><h3>20-day</h3><div id="m20">—</div></div><div class="box"><h3>6-month</h3><div id="m6">—</div></div>
+<div class="box"><h3>MACD</h3><div id="macd">—</div></div><div class="box"><h3>ADX 14</h3><div id="adx">—</div></div>
+<div class="box"><h3>Stochastic</h3><div id="stoch">—</div></div><div class="box"><h3>Bollinger position</h3><div id="bb">—</div></div>
+<div class="box"><h3>Volatility</h3><div id="vol">—</div></div><div class="box"><h3>52-week position</h3><div id="range">—</div></div>
+<div class="box"><h3>50 DMA</h3><div id="ma50">—</div><div id="ma50n" class="label">—</div></div><div class="box"><h3>200 DMA</h3><div id="ma200">—</div><div id="ma200n" class="label">—</div></div>
+</div></div>
+
+<div class="card"><h2>Dividend catalyst</h2><div class="grid">
+<div class="box"><h3>Dividend</h3><div id="dividend">—</div></div>
+<div class="box"><h3>Ex-date</h3><div id="exdate">—</div></div>
+<div class="box"><h3>Days to ex-date</h3><div id="daysEx">—</div></div>
+<div class="box"><h3>Dividend yield*</h3><div id="dy">—</div></div>
+</div>
+<p class="small">A dividend announcement can act as a catalyst, but it does not guarantee a price rise. The dividend score measures the catalyst separately from the trading score.</p>
+</div>
+
+<div class="card"><h2>Fundamentals & valuation</h2><div class="grid">
+<div class="box"><h3>P/E</h3><div id="pe">—</div></div><div class="box"><h3>Forward P/E</h3><div id="fpe">—</div></div>
+<div class="box"><h3>ROE</h3><div id="roe">—</div></div><div class="box"><h3>ROA</h3><div id="roa">—</div></div>
+<div class="box"><h3>Debt / Equity</h3><div id="de">—</div></div><div class="box"><h3>Profit margin</h3><div id="margin">—</div></div>
+<div class="box"><h3>Revenue growth</h3><div id="growth">—</div></div><div class="box"><h3>Dividend yield</h3><div id="dy2">—</div></div>
+</div></div>
+
+<div class="card"><h2>Why the scores?</h2><div class="wrap"><table><thead><tr><th>Factor</th><th>Reading</th><th>Signal</th><th>Impact</th></tr></thead><tbody id="checks"></tbody></table></div></div>
+
+<div class="card small"><b>Important:</b> This is a rules-based research tool, not a guaranteed buy/sell system. A high short-term score means the current technical setup is more favorable according to the rules; it does not predict the next 1–2 days with certainty. Entry, target and stop are reference levels, not personalized financial advice. Market data is cached by GitHub Actions and is not a licensed exchange-real-time feed. Verify live price, NSE disclosures and your broker data before trading.</div>
+</section>
+</main>
+
+<script>
+let db=null;
+const $=id=>document.getElementById(id);
+function prog(n,t){$("bar").style.width=n+"%";$("pct").textContent=n+"%";if(t)$("status").textContent=t}
+function num(v,d=2){return v==null||!isFinite(v)?"—":Number(v).toLocaleString("en-IN",{maximumFractionDigits:d})}
+function pct(v){return v==null||!isFinite(v)?"—":num(v)+"%"}
+function scoreColor(v){return v>=70?"good":v>=50?"neutral":"bad"}
+function setScore(prefix,v,verdict){v=v==null?0:Math.round(v);$(""+prefix+"Score").textContent=v+"/100";$(""+prefix+"Bar").style.width=v+"%";$(""+prefix+"Verdict").textContent=verdict||"—";$(""+prefix+"Verdict").className=scoreColor(v)}
+function render(x){
+$("out").style.display="block";
+$("sym").textContent=x.symbol;$("company").textContent=x.company||"NSE";
+$("price").textContent=x.price!=null?"₹"+num(x.price):"—";
+$("chg").textContent=x.change!=null?(x.change>=0?"+":"")+pct(x.change):"—";$("chg").className=x.change>=0?"good":"bad";
+$("rsi").textContent=num(x.rsi);$("trend").textContent=x.trend||"—";
+setScore("st",x.shortTermScore,x.shortTermVerdict);setScore("sw",x.swingScore,x.swingVerdict);setScore("dv",x.dividendScore,x.dividendVerdict);setScore("lt",x.longTermScore,x.longTermVerdict);
+$("mainDecision").textContent=x.mainDecision||"—";$("decisionWhy").textContent=x.mainDecisionWhy||"—";
+$("support").textContent=x.support!=null?"₹"+num(x.support):"—";$("resistance").textContent=x.resistance!=null?"₹"+num(x.resistance):"—";
+$("entry").textContent=x.entryLow!=null?"₹"+num(x.entryLow)+"–₹"+num(x.entryHigh):"—";$("target").textContent=x.target!=null?"₹"+num(x.target):"—";$("stop").textContent=x.stopLoss!=null?"₹"+num(x.stopLoss):"—";
+$("rr").textContent=x.riskReward!=null?num(x.riskReward)+" : 1":"—";$("atr").textContent=x.atr!=null?"₹"+num(x.atr):"—";$("voln").textContent=x.volumeVsAvg||"—";
+$("m1").textContent=pct(x.momentum1d);$("m5").textContent=pct(x.momentum5d);$("m20").textContent=pct(x.momentum20d);$("m6").textContent=pct(x.momentum6m);
+$("macd").textContent=num(x.macd);$("adx").textContent=num(x.adx);$("stoch").textContent=num(x.stoch);$("bb").textContent=x.bbPosition!=null?num(x.bbPosition)+"%":"—";
+$("vol").textContent=pct(x.volatility);$("range").textContent=x.rangePosition!=null?num(x.rangePosition,0)+"%":"—";
+$("ma50").textContent=x.ma50?"₹"+num(x.ma50):"—";$("ma50n").textContent=x.ma50?(x.price>x.ma50?"Price above MA50":"Price below MA50"):"—";
+$("ma200").textContent=x.ma200?"₹"+num(x.ma200):"—";$("ma200n").textContent=x.ma200?(x.price>x.ma200?"Price above MA200":"Price below MA200"):"—";
+$("dividend").textContent=x.dividendAmount!=null?"₹"+num(x.dividendAmount):"—";$("exdate").textContent=x.exDate||"—";$("daysEx").textContent=x.daysToEx!=null?x.daysToEx:"—";$("dy").textContent=x.dividendYield!=null?pct(x.dividendYield):"—";$("dy2").textContent=x.dividendYield!=null?pct(x.dividendYield):"—";
+$("pe").textContent=num(x.pe);$("fpe").textContent=num(x.forwardPE);$("roe").textContent=x.roe!=null?pct(x.roe):"—";$("roa").textContent=x.roa!=null?pct(x.roa):"—";$("de").textContent=num(x.debtEquity);$("margin").textContent=x.margin!=null?pct(x.margin):"—";$("growth").textContent=x.revenueGrowth!=null?pct(x.revenueGrowth):"—";
+$("checks").innerHTML=(x.checks||[]).map(c=>`<tr><td>${c.factor}</td><td>${c.reading}</td><td class="${scoreColor(c.score>=0?Math.min(100,50+c.score):50)}">${c.signal}</td><td>${c.impact||"—"}</td></tr>`).join("");
+prog(100,"Analysis complete — dataset updated "+(db.updated||""));$("status").className="status ok";
+}
+async function loadDB(){prog(15,"Loading cached market data…");let r=await fetch("data/stocks.json?"+Date.now());if(!r.ok)throw Error("Market dataset not available yet");db=await r.json();prog(55,"Market dataset ready — enter a share name or symbol.");$("status").className="status ok";$("status").textContent="Dataset contains "+(db.count||0)+" stocks. Updated "+(db.updated||"")}
+async function analyze(){if(!db)return;let q=$("q").value.trim().toUpperCase();if(!q){$("status").className="status err";$("status").textContent="Enter a stock symbol or company name.";return}prog(65,"Searching and analyzing "+q+"…");let found=db.stocks.find(x=>x.symbol===q)||db.stocks.find(x=>(x.company||"").toUpperCase().includes(q));if(!found){$("status").className="status err";$("status").textContent="Stock not found. Try the NSE symbol.";prog(100,"Search complete.");return}render(found)}
+$("q").addEventListener("keydown",e=>{if(e.key==="Enter")analyze()});
+loadDB().catch(e=>{prog(100,"Dataset unavailable.");$("status").className="status err";$("status").textContent="The automatic market update has not created stocks.json yet. Run the GitHub Action once."});
+</script>
+</body>
+</html>
